@@ -31,6 +31,9 @@ public class User {
     @Column(name = "role")
     private List<String> roles = new ArrayList<>();
 
+    @Column(name = "moodle_id")
+    private String moodleId;
+
     // For student users, link to their student entity
     @OneToOne(mappedBy = "user")
     private Student student;

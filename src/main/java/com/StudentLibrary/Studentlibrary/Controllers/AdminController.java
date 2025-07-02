@@ -2,6 +2,7 @@ package com.StudentLibrary.Studentlibrary.Controllers;
 
 import com.StudentLibrary.Studentlibrary.Model.Student;
 import com.StudentLibrary.Studentlibrary.Model.User;
+import com.StudentLibrary.Studentlibrary.Repositories.StudentRepository;
 import com.StudentLibrary.Studentlibrary.Services.StudentService;
 import com.StudentLibrary.Studentlibrary.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class AdminController {
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private StudentRepository studentRepository;
+
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.findAll());
@@ -38,24 +42,43 @@ public class AdminController {
     public ResponseEntity<?> createUser(@RequestBody Map<String, Object> userRequest) {
         try {
             String username = (String) userRequest.get("username");
-            String password = (String) userRequest.get("password");
-            List<String> roles = (List<String>) userRequest.get("roles");
+            String moodleID = (String)userRequest.get("moodle_id");
+            String role = (String) userRequest.get("role");
+            String studentNumber = (String) userRequest.get("student_id");
 
-            if (username == null || password == null || roles == null) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Username, password, and roles are required"));
+
+
+            if (username == null || moodleID == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Username and moodleId are required"));
             }
 
             if (userService.existsByUsername(username)) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Username already exists"));
-            }
 
+            }
+            List<String> roles = List.of();
             User user = new User();
             user.setUsername(username);
-            user.setPassword(password);
-//            user.setRoles(roles);
+            user.setPassword(moodleID);
+            if(role.equals("USER")){
+               roles = List.of("USER");
+            }else if(role.equals("ADMIN")){
+                roles = List.of("ADMIN");
+            }
+            user.setRoles(roles);
+            user.setMoodleId(moodleID);
 
             User createdUser = userService.createUser(user);
-            
+
+            Student student = new Student();
+            student.setUser(createdUser);
+            student.setName(username);
+            student.setEmailId(username+"@email.com");
+            student.setStudentId(studentNumber);
+            studentRepository.save(student);
+            studentRepository.flush();
+
+
             // Remove password from response
             createdUser.setPassword(null);
             

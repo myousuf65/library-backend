@@ -24,26 +24,7 @@ public class BookService {
         }
         return bookRepository.save(book);
     }
-    
-//    public Book createBookWithImage(Book book, MultipartFile image) throws IOException {
-//        if (book == null) {
-//            throw new IllegalArgumentException("Book cannot be null");
-//        }
-//
-//        if (image != null && !image.isEmpty()) {
-//            byte[] imageData = image.getBytes();
-//            System.out.println("Setting image data on book, size: " + imageData.length + " bytes");
-//            book.setCoverImage(imageData);
-//        }
-//
-//        Book savedBook = bookRepository.save(book);
-//        System.out.println("Book saved with ID: " + savedBook.getId() +
-//                          ", has image: " + (savedBook.getCoverImage() != null && savedBook.getCoverImage().length > 0));
-//        if (savedBook.getCoverImage() != null) {
-//            System.out.println("Saved image size: " + savedBook.getCoverImage().length + " bytes");
-//        }
-//        return savedBook;
-//    }
+
 
     public List<Book> getBooks(String genre, boolean isAvailable, String author) {
         if (genre != null && author != null) {

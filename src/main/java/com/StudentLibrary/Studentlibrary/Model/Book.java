@@ -47,6 +47,8 @@ public class Book {
     @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    private Long barcode;
     
     @Column(name = "cover_image")
 //    @JsonIgnore
@@ -139,6 +141,9 @@ public class Book {
         this.publishedYear = publishedYear;
     }
 
+    public Long getBarcode() {return barcode;}
+
+    public void setBarcode(Long barcode) {this.barcode = barcode;}
 
     public String getCoverImage() {
         return coverImage;
@@ -152,16 +157,21 @@ public class Book {
     public boolean hasImage() {
         return coverImage != null && coverImage.length() > 0;
     }
-    
+
     @Override
     public String toString() {
         return "Book{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", genre=" + genre +
-                ", author=" + (author != null ? author.getName() : "null") +
+                ", author=" + author +
+                ", student=" + student +
+                ", publishedYear=" + publishedYear +
                 ", available=" + available +
-                ", hasImage=" + hasImage() +
+                ", description='" + description + '\'' +
+                ", barcode=" + barcode +
+                ", coverImage='" + coverImage + '\'' +
+                ", transactions=" + transactions +
                 '}';
     }
 }

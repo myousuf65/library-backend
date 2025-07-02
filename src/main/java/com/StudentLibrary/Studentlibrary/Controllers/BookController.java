@@ -1,25 +1,14 @@
 package com.StudentLibrary.Studentlibrary.Controllers;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.StudentLibrary.Studentlibrary.Repositories.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.StudentLibrary.Studentlibrary.Model.Author;
@@ -57,6 +46,7 @@ public class BookController {
             @RequestParam("authorEmail") String authorEmail,
             @RequestParam("authorAge") String authorAge,
             @RequestParam("authorCountry") String authorCountry,
+            @RequestParam("barcode") Long barcode,
             @RequestParam("image") String image
     ){
 
@@ -71,7 +61,7 @@ public class BookController {
             System.out.println("Author Email: " + authorEmail);
             System.out.println("Author Age: " + authorAge);
             System.out.println("Author Country: " + authorCountry);
-            System.out.println("Image present: " + (image != null));
+            System.out.println("Barcode: " + barcode);
 
             // Parse author age
             int age;
@@ -90,6 +80,7 @@ public class BookController {
             book.setName(name);
             book.setDescription(description);
             book.setPublishedYear(publishedYear);
+            book.setBarcode(barcode);
             try {
                 // Try to match the genre case-insensitively
                 Genre matchedGenre = null;
@@ -137,53 +128,6 @@ public class BookController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
-    
-//    @PostMapping(value = "/public/uploadImage", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-//    public ResponseEntity<?> uploadBookImage(
-//            @RequestParam("bookId") int bookId,
-//            @RequestParam("image") MultipartFile image) {
-//
-//        try {
-//            // Debug logs
-//            System.out.println("Received book image upload request:");
-//            System.out.println("Book ID: " + bookId);
-//            System.out.println("Image present: " + (image != null));
-//            System.out.println("Image empty: " + (image != null && image.isEmpty()));
-//            System.out.println("Image size: " + (image != null ? image.getSize() : "N/A") + " bytes");
-//            System.out.println("Image content type: " + (image != null ? image.getContentType() : "N/A"));
-//            System.out.println("Image name: " + (image != null ? image.getOriginalFilename() : "N/A"));
-//
-//            if (image == null || image.isEmpty()) {
-//                return ResponseEntity.badRequest().body(Map.of("message", "No image provided"));
-//            }
-//
-//            // Get the book
-//            Book book = bookService.getBookById(bookId);
-//            if (book == null) {
-//                return ResponseEntity.notFound().build();
-//            }
-//
-//            // Set the image data directly on the book entity
-//            book.setCoverImage(image.getBytes());
-//            System.out.println("Image data set on book entity, size: " + image.getSize() + " bytes");
-//
-//            // Save the book with the image
-//            Book updatedBook = bookService.createBook(book);
-//            System.out.println("Book updated with image: " + updatedBook.getId() + ", has image: " + updatedBook.hasImage());
-//
-//            Map<String, Object> response = new HashMap<>();
-//            response.put("message", "Image uploaded successfully");
-//            response.put("id", updatedBook.getId());
-//            response.put("hasImage", updatedBook.hasImage());
-//
-//            return ResponseEntity.ok(response);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            Map<String, String> errorResponse = new HashMap<>();
-//            errorResponse.put("message", "Failed to upload image: " + e.getMessage());
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-//        }
-//    }
 
     @GetMapping("/search")
     public ResponseEntity<List<Book>> getBooks(
@@ -192,6 +136,18 @@ public class BookController {
             @RequestParam(value = "author", required = false) String author) {
         List<Book> bookList = bookService.getBooks(genre, available, author);
         return new ResponseEntity<>(bookList, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/find/{barcode}")
+    public ResponseEntity<?> findByBarcode(@PathVariable Long barcode){
+        Optional<Book> book = bookRepository.findByBarcode(barcode);
+        if(book.isPresent()){
+            return ResponseEntity.ok(book);
+        }
+        else{
+            return ResponseEntity.badRequest().body("book not found");
+        }
     }
     
     @GetMapping("/public/all")
@@ -218,34 +174,6 @@ public class BookController {
             return ResponseEntity.notFound().build();
         }
     }
-    
-//    @GetMapping("/public/image")
-//    public ResponseEntity<?> getBookImage(@RequestParam int id) {
-//        try {
-//            System.out.println("Getting image for book ID: " + id);
-//            Book book = bookService.getBookById(id);
-//
-//            if (book == null) {
-//                System.out.println("Book not found with ID: " + id);
-//                return ResponseEntity.notFound().build();
-//            }
-//
-//            byte[] imageData = book.getCoverImage();
-//            if (imageData != null && imageData.length > 0) {
-//                System.out.println("Image found for book: " + book.getName() + ", size: " + imageData.length + " bytes");
-//                return ResponseEntity.ok()
-//                        .contentType(MediaType.IMAGE_JPEG)
-//                        .body(imageData);
-//            } else {
-//                System.out.println("No image found for book: " + book.getName());
-//                return ResponseEntity.notFound().build();
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(Map.of("message", "Failed to retrieve image: " + e.getMessage()));
-//        }
-//    }
     
     @PutMapping("/public/updateBook")
     public ResponseEntity<?> updateBook(@RequestBody Book book) {

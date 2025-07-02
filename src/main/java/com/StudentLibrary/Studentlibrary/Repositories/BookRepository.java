@@ -1,6 +1,7 @@
 package com.StudentLibrary.Studentlibrary.Repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -39,4 +40,6 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     long countByAvailable(boolean available);
     
     List<Book> findTop5ByOrderByIdDesc();
+
+    Optional<Book> findByBarcode(Long barcode);
 }
