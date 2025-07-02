@@ -2,15 +2,15 @@ package com.StudentLibrary.Studentlibrary.Controllers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import com.StudentLibrary.Studentlibrary.Model.Student;
+import com.StudentLibrary.Studentlibrary.Repositories.StudentRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.StudentLibrary.Studentlibrary.Model.Transaction;
 import com.StudentLibrary.Studentlibrary.Repositories.TransactionRepository;
@@ -21,6 +21,9 @@ public class TransactionController {
 
     @Autowired
     TransactionService transactionService;
+
+    @Autowired
+    StudentRepository studentRepository;
     
     @Autowired
     TransactionRepository transactionRepository;
@@ -116,6 +119,22 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @PostMapping("/transaction/setfine")
+    public ResponseEntity<?> setOverdue(@RequestBody JsonNode node){
+        double fine = node.get("fine").asDouble();
+        int studentId = node.get("studentId").asInt();
+
+        Optional<Student> student = studentRepository.findById(studentId);
+        if (student.isPresent()){
+            student.get().setFine(String.valueOf(fine));
+        }
+
+        Student savedStudent = studentRepository.save(student.get());
+        studentRepository.flush();
+
+        return ResponseEntity.ok(savedStudent);
     }
     
     @PostMapping("/transaction/returnBook")

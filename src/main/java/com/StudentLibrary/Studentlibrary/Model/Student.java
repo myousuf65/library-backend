@@ -32,6 +32,8 @@ public class Student {
     private int age;
     private String country;
 
+    private String fine;
+
     @OneToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore
@@ -126,5 +128,13 @@ public class Student {
 
     public void setTransactions(List<Transaction> transactions) {
         this.transactions = transactions;
+    }
+
+    public String getFine() {
+        return fine;
+    }
+
+    public void setFine(String fine) {
+        this.fine = fine;
     }
 }
