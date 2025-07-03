@@ -123,18 +123,71 @@ public class TransactionController {
 
     @PostMapping("/transaction/setfine")
     public ResponseEntity<?> setOverdue(@RequestBody JsonNode node){
-        double fine = node.get("fine").asDouble();
-        int studentId = node.get("studentId").asInt();
+        try {
+            double fine = node.get("fine").asDouble();
+            int studentId = node.get("studentId").asInt();
+            
+            System.out.println("Setting fine for student ID: " + studentId + ", fine amount: " + fine);
 
-        Optional<Student> student = studentRepository.findById(studentId);
-        if (student.isPresent()){
-            student.get().setFine(String.valueOf(fine));
+            Optional<Student> student = studentRepository.findById(studentId);
+            if (student.isPresent()){
+                Student studentToUpdate = student.get();
+                System.out.println("Found student: " + studentToUpdate.getName() + ", current fine: " + studentToUpdate.getFine());
+                
+                String fineString = String.valueOf(fine);
+                studentToUpdate.setFine(fineString);
+                System.out.println("Setting fine to: " + fineString);
+                
+                Student savedStudent = studentRepository.save(studentToUpdate);
+                studentRepository.flush();
+                
+                System.out.println("Saved student fine: " + savedStudent.getFine());
+                return ResponseEntity.ok(savedStudent);
+            } else {
+                System.out.println("Student not found with ID: " + studentId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Student not found"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error setting fine: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Failed to set fine: " + e.getMessage()));
         }
+    }
+    
+    @PostMapping("/transaction/clearfine")
+    public ResponseEntity<?> clearFine(@RequestBody JsonNode node){
+        try {
+            int studentId = node.get("studentId").asInt();
+            System.out.println("Clearing fine for student ID: " + studentId);
 
-        Student savedStudent = studentRepository.save(student.get());
-        studentRepository.flush();
-
-        return ResponseEntity.ok(savedStudent);
+            Optional<Student> student = studentRepository.findById(studentId);
+            if (student.isPresent()){
+                Student studentToUpdate = student.get();
+                System.out.println("Found student: " + studentToUpdate.getName() + ", current fine: " + studentToUpdate.getFine());
+                
+                studentToUpdate.setFine("0");
+                Student savedStudent = studentRepository.save(studentToUpdate);
+                studentRepository.flush();
+                
+                System.out.println("Fine cleared successfully for student: " + savedStudent.getName());
+                return ResponseEntity.ok(Map.of(
+                    "message", "Fine cleared successfully",
+                    "studentId", savedStudent.getId(),
+                    "fine", savedStudent.getFine()
+                ));
+            } else {
+                System.out.println("Student not found with ID: " + studentId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Student not found"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error clearing fine: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Failed to clear fine: " + e.getMessage()));
+        }
     }
     
     @PostMapping("/transaction/returnBook")
@@ -149,6 +202,38 @@ public class TransactionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/transaction/test-fine/{studentId}")
+    public ResponseEntity<?> testFine(@PathVariable int studentId) {
+        try {
+            Optional<Student> student = studentRepository.findById(studentId);
+            if (student.isPresent()) {
+                Student studentData = student.get();
+                System.out.println("Test - Student: " + studentData.getName() + ", Fine: " + studentData.getFine());
+                
+                // Set a test fine
+                studentData.setFine("25.50");
+                Student savedStudent = studentRepository.save(studentData);
+                studentRepository.flush();
+                
+                System.out.println("Test - After setting fine: " + savedStudent.getFine());
+                
+                return ResponseEntity.ok(Map.of(
+                    "message", "Test fine set",
+                    "studentId", savedStudent.getId(),
+                    "fine", savedStudent.getFine()
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Student not found"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error in test fine: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Failed to test fine: " + e.getMessage()));
         }
     }
 }

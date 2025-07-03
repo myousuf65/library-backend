@@ -68,6 +68,12 @@ public class StudentService {
             System.out.println("Fetching all students");
             List<Student> students = studentRepository.findAll();
             System.out.println("Found " + students.size() + " students");
+            
+            // Debug each student's fine
+            for (Student student : students) {
+                System.out.println("Student: " + student.getName() + " (ID: " + student.getId() + "), Fine: " + student.getFine() + ", Type: " + (student.getFine() != null ? student.getFine().getClass().getSimpleName() : "null"));
+            }
+            
             return students;
         } catch (Exception e) {
             System.err.println("Error fetching students: " + e.getMessage());

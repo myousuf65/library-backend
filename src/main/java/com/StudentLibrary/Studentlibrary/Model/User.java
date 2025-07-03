@@ -1,19 +1,10 @@
 package com.StudentLibrary.Studentlibrary.Model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Table(name = "users")
 public class User {
     @Id
@@ -37,4 +28,55 @@ public class User {
     // For student users, link to their student entity
     @OneToOne(mappedBy = "user")
     private Student student;
+
+    // No-args constructor
+    public User() {}
+
+    // All-args constructor
+    public User(int id, String username, String password, List<String> roles, String moodleId, Student student) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.roles = roles;
+        this.moodleId = moodleId;
+        this.student = student;
+    }
+
+    // Getters and Setters
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public String getUsername() {
+        return username;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public List<String> getRoles() {
+        return roles;
+    }
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+    public String getMoodleId() {
+        return moodleId;
+    }
+    public void setMoodleId(String moodleId) {
+        this.moodleId = moodleId;
+    }
+    public Student getStudent() {
+        return student;
+    }
+    public void setStudent(Student student) {
+        this.student = student;
+    }
 }
