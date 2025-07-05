@@ -45,8 +45,13 @@ public class AdminController {
             String moodleID = (String)userRequest.get("moodle_id");
             String role = (String) userRequest.get("role");
             String studentNumber = (String) userRequest.get("student_id");
+            String userEmail;
 
-
+            if(userRequest.containsKey("email")){
+                userEmail = (String)userRequest.get("email");
+            }else{
+               userEmail = studentNumber+"@uowmail.edu.au";
+            }
 
             if (username == null || moodleID == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Username and moodleId are required"));
@@ -73,7 +78,7 @@ public class AdminController {
             Student student = new Student();
             student.setUser(createdUser);
             student.setName(username);
-            student.setEmailId(username+"@email.com");
+            student.setEmailId(userEmail);
             student.setStudentId(studentNumber);
             studentRepository.save(student);
             studentRepository.flush();
