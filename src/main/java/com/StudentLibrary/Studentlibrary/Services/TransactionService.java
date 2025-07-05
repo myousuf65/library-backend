@@ -78,6 +78,47 @@ public class TransactionService {
     }
 
     @Transactional
+    public String issueScannedBooks(String studentId, int bookId) throws Exception {
+        // Check if book is available
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new Exception("Book not found with id: " + bookId));
+
+        if (!book.isAvailable()) {
+            throw new Exception("Book is not available for issue");
+        }
+
+        // Check if student exists
+        Student student = studentRepository.findByStudentId(studentId);
+
+
+        // Count only currently borrowed books (available == false)
+        long currentlyBorrowed = student.getBooks() == null ? 0 : student.getBooks().stream()
+                .filter(b -> !b.isAvailable())
+                .count();
+        if (currentlyBorrowed >= maxAllowedBooks) {
+            throw new Exception("Student has already issued maximum allowed books");
+        }
+
+        // Create transaction
+        Transaction transaction = new Transaction();
+        transaction.setBook(book);
+        transaction.setStudent(student);
+        transaction.setIsIssueOperation(true);
+        transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+        transaction.setTransactionId(UUID.randomUUID().toString());
+
+        // Update book status
+        book.setAvailable(false);
+        book.setStudent(student);
+        bookRepository.save(book);
+
+        // Save transaction
+        transactionRepository.save(transaction);
+
+        return transaction.getTransactionId();
+    }
+
+    @Transactional
     public String returnBooks(int studentId, int bookId) throws Exception {
         // Check if book exists
         Book book = bookRepository.findById(bookId)
@@ -92,41 +133,24 @@ public class TransactionService {
             throw new Exception("This book was not issued to this student");
         }
 
-        // Find the issue transaction
-        List<Transaction> transactions = transactionRepository.findByBookAndStudentAndIsIssueOperationTrueOrderByTransactionDateDesc(
-                book, student, PageRequest.of(0, 1));
 
-        if (transactions.isEmpty()) {
+        Optional<Transaction> transaction = transactionRepository.findByStudentAndBookAndIsIssueOperationIsTrue(student, book);
+
+        if (!transaction.isPresent()) {
             throw new Exception("No issue transaction found for this book and student");
         }
 
-        Transaction issueTransaction = transactions.get(0);
+        transaction.get().setIsIssueOperation(false);
 
-        // Calculate fine
-        Date issueDate = issueTransaction.getTransactionDate();
-        Date returnDate = new Date();
-
-        long diffInMillies = returnDate.getTime() - issueDate.getTime();
-        long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
-
-
-        // Create return transaction
-        Transaction returnTransaction = new Transaction();
-        returnTransaction.setBook(book);
-        returnTransaction.setStudent(student);
-        returnTransaction.setIsIssueOperation(false);
-        returnTransaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
-        returnTransaction.setTransactionId(UUID.randomUUID().toString());
+        Transaction savedTransaction = transactionRepository.save(transaction.get());
+        transactionRepository.flush();
 
         // Update book status
         book.setAvailable(true);
         book.setStudent(null);
         bookRepository.save(book);
 
-        // Save transaction
-        transactionRepository.save(returnTransaction);
-
-        return returnTransaction.getTransactionId();
+        return savedTransaction.getTransactionId();
     }
 
     public List<Transaction> getAllTransactions() {
@@ -254,11 +278,14 @@ public class TransactionService {
 
         Date currentDate = new Date();
         for (Transaction t : allTransactions) {
-            long diffInMillis = currentDate.getTime() - t.getTransactionDate().getTime();
-            long diffInDays = diffInMillis / (1000 * 60 * 60 * 24);
+            if(t.getIsIssueOperation()){
+                System.out.println(t);
+                long diffInMillis = currentDate.getTime() - t.getTransactionDate().getTime();
+                long diffInDays = diffInMillis / (1000 * 60 * 60 * 24);
 
-            if (diffInDays > 10) {
-                overdueTransactions.add(t);
+                if (diffInDays > 10) {
+                    overdueTransactions.add(t);
+                }
             }
         }
         return overdueTransactions;

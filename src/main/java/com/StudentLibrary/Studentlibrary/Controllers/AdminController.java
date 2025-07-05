@@ -59,7 +59,7 @@ public class AdminController {
             List<String> roles = List.of();
             User user = new User();
             user.setUsername(username);
-            user.setPassword(moodleID);
+            user.setPassword(studentNumber);
             if(role.equals("USER")){
                roles = List.of("USER");
             }else if(role.equals("ADMIN")){

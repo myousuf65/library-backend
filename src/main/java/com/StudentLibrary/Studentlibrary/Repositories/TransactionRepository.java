@@ -28,4 +28,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findByIsIssueOperationFalse(Sort sort);
     
     boolean existsByBookAndStudentAndIsIssueOperationFalse(Book book, Student student);
+
+    List<Transaction> findByStudentAndBook(Student student, Book book);
+
+    Optional<Transaction> findByStudentAndBookAndIsIssueOperationIsTrue(Student student, Book book);
 }

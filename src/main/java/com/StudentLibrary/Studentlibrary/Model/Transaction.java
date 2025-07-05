@@ -108,4 +108,16 @@ public class Transaction {
     public void setTransactionDate(Date transactionDate) {
         this.transactionDate = transactionDate;
     }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "id=" + id +
+                ", transactionId='" + transactionId + '\'' +
+                ", fineAmount=" + fineAmount +
+                ", isIssueOperation=" + isIssueOperation +
+                ", transactionStatus=" + transactionStatus +
+                ", transactionDate=" + transactionDate +
+                '}';
+    }
 }

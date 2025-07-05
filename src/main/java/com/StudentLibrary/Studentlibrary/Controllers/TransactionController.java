@@ -107,8 +107,11 @@ public class TransactionController {
     }
 
     @PostMapping("/transaction/issueBook")
-    public ResponseEntity<?> issueBook(@RequestParam(value = "studentId") int studentId,
-                                    @RequestParam("bookId")int bookId) throws Exception {
+    public ResponseEntity<?> issueBook(
+            @RequestParam(value = "studentId") int studentId,
+            @RequestParam("bookId")int bookId
+    ) throws Exception {
+
         try {
             String transaction_id = transactionService.issueBooks(studentId, bookId);
             return ResponseEntity.ok(Map.of(
@@ -118,6 +121,24 @@ public class TransactionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/transaction/scan/issueBook")
+    public ResponseEntity<?> issueScannedBook(
+            @RequestParam(value = "studentId") String studentId,
+            @RequestParam("bookId")int bookId
+    ) throws Exception {
+
+        try {
+            String transaction_id = transactionService.issueScannedBooks(studentId, bookId);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Book issued successfully",
+                    "transactionId", transaction_id
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
